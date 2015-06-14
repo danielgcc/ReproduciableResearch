@@ -16,19 +16,19 @@ What is mean total number of steps taken per day?
 ```{r}
 date <- levels(data$date)
 n = 1;
-total = 0;
+totalnumber = 0;
 newdata <- data.frame(Date=vector(), TotalSteps=numeric())
 for (i in 1:nrow(data)) {
   if (as.vector(data[i,2]) == date[n])
-        total = total + data[i,1]
+        totalnumber = totalnumber + data[i,1]
          else {
                 newdata[n,1] <- date[n]
-                newdata[n,2] <- total
+                newdata[n,2] <- totalnumber
                 n = n+1
-                total = 0
+                totalnumber = 0
                 }
 }
-newdata[n,2] = total;
+newdata[n,2] = totalnumber;
 newdata[n,1] = date[n]
 #plot(as.Date(newdata$Date), newdata$TotalSteps)
 ```
@@ -69,7 +69,7 @@ n=1
 target <- data.frame()
 maxvalue <- max(newdata2$AverageSteps,na.rm=TRUE)
 for (i in 1:length(newdata2$Interval)){
-        if (!is.na(newdata2[i,2] & (newdata2[i,2] == maxvalue)) {
+        if (!is.na(newdata2[i,2]) & (newdata2[i,2] == maxvalue)) {
                 target[n,1] = newdata2[i,1]
                 n=n+1                
         }
@@ -107,19 +107,19 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 
 ```{r}
 n = 1
-total = 0
+totalnumber = 0
 newfilldata <- data.frame(Date=vector(), TotalSteps=numeric())
 for (i in 1:nrow(filldata)) {
         if (as.vector(filldata[i,2]) == date[n])
-                total = total + filldata[i,1]
+                totalnumber = totalnumber + filldata[i,1]
         else {
                 newfilldata[n,1] <- date[n]
-                newfilldata[n,2] <- total
+                newfilldata[n,2] <- totalnumber
                 n = n+1
-                total = 0
+                totalnumber = 0
         }
 }
-newfilldata[n,2] = total;
+newfilldata[n,2] = totalnumber;
 newfilldata[n,1] = date[n]
 with(newfilldata,hist(newfilldata$TotalSteps,xla='Total Steps',main='Histogram of Total Steps Taken Each Day (New)'))
 mean(newfilldata$TotalSteps,na.rm=TRUE)
@@ -157,28 +157,28 @@ weekdaynew <- data.frame(Interval=numeric(), AverageSteps=numeric())
 weekendnew <- data.frame(Interval=numeric(), AverageSteps=numeric())
 
 for (i in 1:round(max(weekday$interval)/5)) {
-        total <- data.frame(Total=numeric())
+        total2 <- data.frame(Total=numeric())
         weekdaynew[i,1] <- (i-1)*5
         n = 1
         for (j in 1:length(filldata$interval)) {
                 if (data$interval[j] == weekdaynew[i,1]) {
-                        total[n,1] <- filldata[j,1]
+                        total2[n,1] <- filldata[j,1]
                         n = n+1
                 }
         }
-        weekdaynew[i,2] <- mean(total[,1])
+        weekdaynew[i,2] <- mean(total2[,1])
 }
 for (i in 1:round(max(weekend$interval)/5)) {
-        total <- data.frame(Total=numeric())
+        total3 <- data.frame(Total=numeric())
         weekendnew[i,1] <- (i-1)*5
         n = 1
         for (j in 1:length(filldata$interval)) {
                 if (data$interval[j] == weekendnew[i,1]) {
-                        total[n,1] <- filldata[j,1]
+                        total3[n,1] <- filldata[j,1]
                         n = n+1
                 }
         }
-        weekendnew[i,2] <- mean(total[,1])
+        weekendnew[i,2] <- mean(total3[,1])
 }
 par(mfrow=c(2,1))
 plot(weekdaynew$Interval,weekdaynew$AverageSteps,type="l",xlab="Interval",ylab="Number of Steps",main="Weekday") 
