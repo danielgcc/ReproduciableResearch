@@ -1,0 +1,186 @@
+---
+output: html_document
+---
+Reproducible Research: Peer Assessment 1
+=========================
+
+Loading and preprocessing the data
+1. Load the data (i.e. read.csv())
+2. Process/transform the data (if necessary) into a format suitable for your analysis
+```{r simulaiton, echo=TRUE}
+data <- read.csv("activity.csv",header=TRUE)
+```
+
+What is mean total number of steps taken per day?
+1. Calculate the total number of steps taken per day
+```{r}
+date <- levels(data$date)
+n = 1;
+total = 0;
+newdata <- data.frame(Date=vector(), TotalSteps=numeric())
+for (i in 1:nrow(data)) {
+  if (as.vector(data[i,2]) == date[n])
+        total = total + data[i,1]
+         else {
+                newdata[n,1] <- date[n]
+                newdata[n,2] <- total
+                n = n+1
+                total = 0
+                }
+}
+newdata[n,2] = total;
+newdata[n,1] = date[n]
+#plot(as.Date(newdata$Date), newdata$TotalSteps)
+```
+
+2. Make a histogram of the total number of steps taken each day
+```{r}
+with(newdata,hist(newdata$TotalSteps,xla='Total Steps',main='Histogram of Total Steps Taken Each Day'))
+```
+
+3. Calculate and report the mean and median of the total number of steps taken per day
+```{r}
+mean(newdata$TotalSteps,na.rm=TRUE)
+median(newdata$TotalSteps,na.rm=TRUE)
+```
+
+What is the average daily activity pattern?
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r}
+newdata2 <- data.frame(Interval=numeric(), AverageSteps=numeric())
+for (i in 1:round(max(data$interval)/5)) {
+        total <- data.frame(Total=numeric())
+        newdata2[i,1] <- (i-1)*5
+        n = 1
+        for (j in 1:length(data$interval)) {
+                if (data$interval[j] == newdata2[i,1]) {
+                        total[n,1] <- data[j,1]
+                        n = n+1
+                }
+        }
+        newdata2[i,2] <- mean(total[,1],na.rm=TRUE)
+}
+with(newdata2,plot(Interval,AverageSteps,type='l',xlab='Interval',ylab='Average Steps',main='Average Daily Activity Pattern'))
+```
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r}
+n=1
+target <- data.frame()
+maxvalue <- max(newdata2$AverageSteps,na.rm=TRUE)
+for (i in 1:length(newdata2$Interval)){
+        if (!is.na(newdata2[i,2] & (newdata2[i,2] == maxvalue)) {
+                target[n,1] = newdata2[i,1]
+                n=n+1                
+        }
+}
+colnames(target) <- "Interval"
+target
+```
+Imputing missing values
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r}
+num = 0
+for (i in 1:length(data$steps)) {
+        if (is.na(data[i,1])==TRUE)  num = num+1      
+}
+num
+```
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+The mean for the specific 5-minute interval is used for filling the missing data
+
+```{r}
+filldata <- data
+for (i in 1:length(filldata$steps)) {
+        if (is.na(filldata[i,1])==TRUE) {  
+                for (j in 1:length(newdata2$Interval)) {
+                        if (filldata[i,3]==newdata2[j,1])
+                        filldata[i,1] = newdata2[j,2]
+                } 
+        }
+}
+head(filldata)
+```
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.
+
+```{r}
+n = 1
+total = 0
+newfilldata <- data.frame(Date=vector(), TotalSteps=numeric())
+for (i in 1:nrow(filldata)) {
+        if (as.vector(filldata[i,2]) == date[n])
+                total = total + filldata[i,1]
+        else {
+                newfilldata[n,1] <- date[n]
+                newfilldata[n,2] <- total
+                n = n+1
+                total = 0
+        }
+}
+newfilldata[n,2] = total;
+newfilldata[n,1] = date[n]
+with(newfilldata,hist(newfilldata$TotalSteps,xla='Total Steps',main='Histogram of Total Steps Taken Each Day (New)'))
+mean(newfilldata$TotalSteps,na.rm=TRUE)
+median(newfilldata$TotalSteps,na.rm=TRUE)
+```
+
+Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+Yes, it does change the values
+
+Are there differences in activity patterns between weekdays and weekends?
+1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r}
+filldata[,4] <- c()
+for (i in 1:length(filldata$date)) {
+        filldata[i,4] = weekdays(as.Date(filldata[i,2]))
+}
+colnames(filldata) <- c("steps","date","interval","weekday/weekend")
+head(filldata)
+```
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```{r}
+weekday <- data.frame()
+weekend <- data.frame()
+
+for (i in 1:length(filldata$date)) {
+        if (weekdays(as.Date(filldata[i,2])) == "Saturday" | weekdays(as.Date(filldata[i,2])) == "Sunday")
+                weekend <- rbind(weekend,filldata[i,])
+                else weekday <- rbind(weekday,filldata[i,])        
+}
+
+weekdaynew <- data.frame(Interval=numeric(), AverageSteps=numeric())
+weekendnew <- data.frame(Interval=numeric(), AverageSteps=numeric())
+
+for (i in 1:round(max(weekday$interval)/5)) {
+        total <- data.frame(Total=numeric())
+        weekdaynew[i,1] <- (i-1)*5
+        n = 1
+        for (j in 1:length(filldata$interval)) {
+                if (data$interval[j] == weekdaynew[i,1]) {
+                        total[n,1] <- filldata[j,1]
+                        n = n+1
+                }
+        }
+        weekdaynew[i,2] <- mean(total[,1])
+}
+for (i in 1:round(max(weekend$interval)/5)) {
+        total <- data.frame(Total=numeric())
+        weekendnew[i,1] <- (i-1)*5
+        n = 1
+        for (j in 1:length(filldata$interval)) {
+                if (data$interval[j] == weekendnew[i,1]) {
+                        total[n,1] <- filldata[j,1]
+                        n = n+1
+                }
+        }
+        weekendnew[i,2] <- mean(total[,1])
+}
+par(mfrow=c(2,1))
+plot(weekdaynew$Interval,weekdaynew$AverageSteps,type="l",xlab="Interval",ylab="Number of Steps",main="Weekday") 
+plot(weekendnew$Interval,weekendnew$AverageSteps,type="l",xlab="Interval",ylab="Number of Steps",main="Weekend") 
+```
